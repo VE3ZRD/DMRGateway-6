@@ -537,6 +537,7 @@ int CDMRGateway::run()
 
 //////////////
  unsigned short int StartNet = m_conf.getStartNet(); 
+ unsigned short int RawNet = m_conf.getRawNet(); 
  GWMode = m_conf.getGWMode(); 
 	
 	selnet = StartNet;
@@ -896,23 +897,23 @@ int CDMRGateway::run()
 
                                 if ( dstId == 9007) {
                                         ok2tx=false;
-					if ( GWMode != 7) 
-					{
-						GWMode=7;
+				//	if ( GWMode != 7) 
+				//	{
+				//		GWMode=7;
 				//		SetDMR();
-						Reload();
-						LogInfo(" Loaded GWMode 7 Parameters");
-					}
+				//		Reload();
+				//		LogInfo(" Loaded GWMode 7 Parameters");
+				//	}
 				}
                                 if ( dstId == 9008 ) {
                                         ok2tx=false;
-					if ( GWMode != 8) 
-					{
-						GWMode=8;
+				//	if ( GWMode != 8) 
+				//	{
+				//		GWMode=8;
 				//		SetDMR();
-						Reload();
-						LogInfo(" Loaded GWMode 8 Parameters");
-					}
+				//		Reload();
+				//		LogInfo(" Loaded GWMode 8 Parameters");
+				//	}
 				}
 				if ( dstId >= 9001 && dstId <= 9006){
                                                 ClearNetworks();
@@ -924,12 +925,12 @@ int CDMRGateway::run()
                                                 locknet = selnet;
                                                 if ( trace && ok2tx ) LogInfo("Network Locked = %d",selnet);
                                                 ok2tx=false;
-					 if ( GWMode != 1 ) {
-						GWMode = 1;
+			//		 if ( GWMode != 1 ) {
+			//			GWMode = 1;
 //						SetDMR();
-						Reload();
-						LogInfo(" Loaded GWMode 1 Parameters");
-					}
+					//	Reload();
+			//			LogInfo(" Loaded GWMode 1 Parameters");
+			//		}
                                 }
 				// 7 Digit Mode
 				if ( GWMode == 7 && dstId > 999999){
@@ -942,9 +943,15 @@ int CDMRGateway::run()
                                   //      	LogDebug("Calculated TG = %d",dstId);
                                         	if (trace) LogInfo("Selected 7x Network = %d",selnet);
                                         	locknet = selnet;
+                                                if ( trace && ok2tx ) LogInfo("Network Locked = %d",selnet);
+						if (RawNet >= 1 && dstId < 99999999)
+						{
+							GWMode=2;
+							selnet=RawNet;						
+						}				
                                         	ok2tx=true;
                                 }
-				
+				// 8 Dgit Mode				
 				if ( dstId > 9999999 ){
                                         	ClearNetworks();
                                         	ClearRFNets();
@@ -956,28 +963,50 @@ int CDMRGateway::run()
                                         	if (trace) LogInfo("Selected 8x Network = %d",selnet);
                                         	locknet = selnet;
                                         	ok2tx=true;
+                                                if ( trace ) LogInfo("Network Locked = %d",selnet);
 			
-						 if ( GWMode != 8 ) {
-							GWMode = 8;
-						Reload();
-						LogInfo(" Loaded GWMode 8 Parameters");
-
+				//		if ( GWMode != 8 ) 
+				//		{
+				//			GWMode = 8;
+				//			Reload();
+				//			LogInfo(" Loaded GWMode 8 Parameters");
+//
 //							SetDMR();
-						}
+//						}
+
+						if (RawNet >= 1 && RawNet == selnet && dstId < 99999999)
+						{
+							GWMode=2;
+	                                        	if (trace) LogInfo("Switching to Raw Mode for Net %d",selnet);
+                                                	if ( trace && ok2tx ) LogInfo("Network Locked = %d",selnet);
+						}				
 				}
 
-				
-                                if ( dstId >= 9000 && dstId <= 9009 ) ok2tx = false;
+//				if (RawNet >= 1 && RawNet == selnet && dstId < 99999999)
+				if ( dstId <= 999999 && RawNet >=1 && RawNet <= 6 )
+					{
+                                                ClearNetworks();
+                                                ClearRFNets();
+						GWMode=2;
+						selnet=RawNet;
+						ok2tx=true;
+                                                if ( trace && ok2tx ) LogInfo("Network Locked = %d",selnet);
+
+						
+					}				
+
+                               	if ( dstId >= 9000 && dstId <= 9009 ) ok2tx = false;
+
 
 				if ( GWMode == 0 ) {
-                                        if (m_dmrNetwork1 ) net1ok = true;
-                                        if (m_dmrNetwork2 ) net2ok = true;
-                                        if (m_dmrNetwork3 ) net3ok = true;
-                                        if (m_dmrNetwork4 ) net4ok = true;
-                                        if (m_dmrNetwork5 ) net5ok = true;
-                                        if (m_dmrNetwork6 ) net6ok = true;
-					ok2tx = true;
-				}
+                                        	if (m_dmrNetwork1 ) net1ok = true;
+                                        	if (m_dmrNetwork2 ) net2ok = true;
+                                        	if (m_dmrNetwork3 ) net3ok = true;
+                                        	if (m_dmrNetwork4 ) net4ok = true;
+                                        	if (m_dmrNetwork5 ) net5ok = true;
+                                        	if (m_dmrNetwork6 ) net6ok = true;
+						ok2tx = true;
+					}
 
                            	
 				switch( selnet ) {
@@ -1028,22 +1057,22 @@ int CDMRGateway::run()
                                                                 net6ok=true;
                                                                 break;
                                                         }
-                                                case 7 : if ( m_dmrNetwork3 != NULL )
-                                                        {
-                                                                 rf3ok=true;
-                                                                net3ok=true;
-                                        			locknet=3;  
-					                      break;
-                                                        }
+                                   //             case 7 : if ( m_dmrNetwork3 != NULL )
+                                   //                     {
+                                   //                              rf3ok=true;
+                                   //                             net3ok=true;
+                                   //     			locknet=3;  
+				   //                           break;
+                                   //                     }
 
-                                        }
-                                        
+                                        	}
 	if ( trace ) LogInfo("RF transmission: Net=%u, Slot=%u Src=%u Dst=%s%u", selnet, slotNo, srcId, flco == FLCO_GROUP ? "TG" : "", dstId);
         if ( trace ) LogInfo("RF1OK:%s    RF2OK:%s   RF3OK:%s   RF4OK:%s   RF5OK:%s   RF6OK:%s", rf1ok ? "yes" : "no ", rf2ok ? "yes" : "no ", rf3ok ? "yes" : "no ", rf4ok ? "yes" : "no ", rf5ok ? "yes" : "no ", rf6ok ? "yes" : "no" );        
 	if ( trace ) LogInfo("NET1OK:%s   NET2OK:%s  NET3OK:%s  NET4OK:%s  NET5OK:%s  NET6OK:%s", net1ok ? "yes" : "no ", net2ok ? "yes" : "no ", net3ok ? "yes" : "no ",  net4ok ? "yes" : "no ", net5ok ? "yes" : "no ", net6ok ? "yes" : "no " );
         if ( trace ) LogInfo("Network Locked = %d    OK to TX:%s", locknet, ok2tx ? "Yes" : "No" );
 	if ( trace ) LogInfo("RFRX Net %d Dest: %d From: %d  TS:%d", selnet, dstId, srcId, slotNo);
 	if ( trace ) LogInfo("Gateway Mode = %d", GWMode);
+	if ( trace && RawNet == selnet ) LogInfo("Raw Net Selected = Net%d ", selnet);
 
 
 				if (m_network1Enabled && (m_dmrNetwork1 != NULL) && rf1ok && ok2tx) {
@@ -1840,6 +1869,7 @@ bool CDMRGateway::createMMDVM()
 	std::string localAddress = m_conf.getLocalAddress();
 	unsigned short localPort = m_conf.getLocalPort();
 	unsigned short startNet = m_conf.getStartNet();
+	unsigned short rawNet = m_conf.getRawNet();
 	bool debug               = m_conf.getDebug();
 
 	selnet=startNet;
@@ -1850,6 +1880,7 @@ bool CDMRGateway::createMMDVM()
 	LogInfo("    Local Address: %s", localAddress.c_str());
 	LogInfo("    Local Port: %hu", localPort);
 	LogInfo("    Start Net: %hu", startNet);
+	LogInfo("    Raw Net: %hu", rawNet);
 
 	m_repeater = new CMMDVMNetwork(rptAddress, rptPort, localAddress, localPort, startNet, debug);
 

@@ -86,6 +86,7 @@ public:
 	std::string  getLocalAddress() const;
 	unsigned short getLocalPort() const;
 	unsigned short getStartNet() const;
+	unsigned short getRawNet() const;
 	unsigned short getGWMode() const;
 	bool         getRuleTrace() const;
 	bool         getDebug() const;
@@ -276,6 +277,7 @@ private:
 	std::string  m_localAddress;
 	unsigned short m_localPort;
 	unsigned short m_startNet;
+	unsigned short m_rawNet;
 	unsigned short m_gwMode;
 	unsigned int m_rfTimeout;
 	unsigned int m_netTimeout;

@@ -53,6 +53,7 @@ m_rptPort(62032U),
 m_localAddress("127.0.0.1"),
 m_localPort(62031U),
 m_startNet(4U),
+m_rawNet(4U),
 m_gwMode(4U),
 m_rfTimeout(10U),
 m_netTimeout(10U),
@@ -311,6 +312,8 @@ bool CConf::read()
 				m_localPort = (unsigned short)::atoi(value);
 			else if (::strcmp(key, "StartNet") == 0)
 				m_startNet = (unsigned short)::atoi(value);
+			else if (::strcmp(key, "RawNet") == 0)
+				m_rawNet = (unsigned short)::atoi(value);
 			else if (::strcmp(key, "GWMode") == 0)
 				m_gwMode = (unsigned short)::atoi(value);
 			else if (::strcmp(key, "RuleTrace") == 0)
@@ -1174,6 +1177,10 @@ unsigned short CConf::getLocalPort() const
 unsigned short CConf::getStartNet() const
 {
 	return m_startNet;
+}
+unsigned short CConf::getRawNet() const
+{
+	return m_rawNet;
 }
 unsigned short CConf::getGWMode() const
 {
