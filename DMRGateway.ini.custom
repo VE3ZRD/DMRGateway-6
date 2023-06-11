@@ -20,6 +20,7 @@ LocalAddress=127.0.0.1
 LocalPort=62031
 RuleTrace=1
 StartNet=4
+RawNet=0
 GWMode=8
 Daemon=1
 Debug=1
