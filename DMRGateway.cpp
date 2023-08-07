@@ -880,6 +880,7 @@ int CDMRGateway::run()
 					rfDstId[slotNo] = dstId;
 					trace = true;
 					LogDebug("Rule Trace, RF transmission: Slot=%u Src=%u Dst=%s%u", slotNo, srcId, flco == FLCO_GROUP ? "TG" : "", dstId);
+					LogInfo("Rule Trace, RF transmission: Slot=%u Src=%u Dst=%s%u", slotNo, srcId, flco == FLCO_GROUP ? "TG" : "", dstId);
 				}
 
 
