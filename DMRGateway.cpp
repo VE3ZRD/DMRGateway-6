@@ -736,6 +736,7 @@ int CDMRGateway::run()
 					LogMessage("XLX, Linking to reflector XLX%03u %c", m_xlxNumber, c);
 					if (m_xlxVoice != NULL)
 						m_xlxVoice->linkedTo(m_xlxNumber, m_xlxReflector);
+					selnet=7;
 				} else if (m_xlxRoom >= 4001U && m_xlxRoom <= 4026U) {
 					writeXLXLink(m_xlxId, m_xlxRoom, m_xlxNetwork);
 					char c = ('A' + (m_xlxRoom % 100U)) - 1U;
@@ -743,6 +744,7 @@ int CDMRGateway::run()
 					if (m_xlxVoice != NULL)
 						m_xlxVoice->linkedTo(m_xlxNumber, m_xlxRoom);
 					m_xlxReflector = m_xlxRoom;
+					selnet=7;
 				} else {
 					if (m_xlxVoice != NULL)
 						m_xlxVoice->linkedTo(m_xlxNumber, 0U);
@@ -771,6 +773,7 @@ int CDMRGateway::run()
 						char c = ('A' + (m_xlxRoom % 100U)) - 1U;
 						LogMessage("XLX, Re-linking to startup reflector XLX%03u %c due to RF inactivity timeout", m_xlxNumber, c);
 						linkXLX(m_xlxStartup);
+						selnet=7;
 					} else {
 						LogMessage("XLX, Unlinking from XLX%03u due to RF inactivity timeout", m_xlxNumber);
 						unlinkXLX();
@@ -783,6 +786,7 @@ int CDMRGateway::run()
 						writeXLXLink(m_xlxId, m_xlxRoom, m_xlxNetwork);
 						char c = ('A' + (m_xlxRoom % 100U)) - 1U;
 						LogMessage("XLX, Re-linking to startup reflector XLX%03u %c due to RF inactivity timeout", m_xlxNumber, c);
+						selnet=7;
 					} else if (m_xlxReflector >= 4001U && m_xlxReflector <= 4026U) {
 						char c = ('A' + (m_xlxReflector % 100U)) - 1U;
 						LogMessage("XLX, Unlinking from reflector XLX%03u %c due to RF inactivity timeout", m_xlxNumber, c);
@@ -795,7 +799,8 @@ int CDMRGateway::run()
 						else
 							m_xlxVoice->linkedTo(m_xlxNumber, m_xlxReflector);
 					}
-				}
+					selnet=7;
+				}	
 			}
 		}
 
@@ -815,6 +820,7 @@ int CDMRGateway::run()
 				m_xlxRewrite->process(data, false);
 				if (m_networkXlxEnabled) {
 					m_xlxNetwork->write(data);
+					selnet=7;
 				}
 				m_status[slotNo] = DMRGWS_XLXREFLECTOR;
 				timer[slotNo]->setTimeout(rfTimeout);
@@ -836,6 +842,7 @@ int CDMRGateway::run()
 						m_xlxReflector = dstId;
 						char c = ('A' + (dstId % 100U)) - 1U;
 						LogMessage("XLX, Linking to reflector XLX%03u %c", m_xlxNumber, c);
+						selnet=7;
 					}
 
 					if (m_xlxReflector != m_xlxRoom)
@@ -852,10 +859,13 @@ int CDMRGateway::run()
 					unsigned char type = data.getDataType();
 					if (type == DT_TERMINATOR_WITH_LC) {
 						if (m_xlxConnected) {
-							if (m_xlxReflector != 4000U)
+							if (m_xlxReflector != 4000U) {
 								m_xlxVoice->linkedTo(m_xlxNumber, m_xlxReflector);
-							else
+								selnet=7;
+							}else{
 								m_xlxVoice->linkedTo(m_xlxNumber, 0U);
+								selnet=7;
+							}
 						} else {
 							m_xlxVoice->unlinked();
 						}
@@ -881,6 +891,7 @@ int CDMRGateway::run()
 					trace = true;
 					LogDebug("Rule Trace, RF transmission: Slot=%u Src=%u Dst=%s%u", slotNo, srcId, flco == FLCO_GROUP ? "TG" : "", dstId);
 					LogInfo("Rule Trace, RF transmission: Slot=%u Src=%u Dst=%s%u", slotNo, srcId, flco == FLCO_GROUP ? "TG" : "", dstId);
+					selnet=7;
 				}
 
 
@@ -897,24 +908,8 @@ int CDMRGateway::run()
                                 }
 
                                 if ( dstId == 9007) {
+					selnet=7;
                                         ok2tx=false;
-				//	if ( GWMode != 7) 
-				//	{
-				//		GWMode=7;
-				//		SetDMR();
-				//		Reload();
-				//		LogInfo(" Loaded GWMode 7 Parameters");
-				//	}
-				}
-                                if ( dstId == 9008 ) {
-                                        ok2tx=false;
-				//	if ( GWMode != 8) 
-				//	{
-				//		GWMode=8;
-				//		SetDMR();
-				//		Reload();
-				//		LogInfo(" Loaded GWMode 8 Parameters");
-				//	}
 				}
 				if ( dstId >= 9001 && dstId <= 9006){
                                                 ClearNetworks();
@@ -926,12 +921,6 @@ int CDMRGateway::run()
                                                 locknet = selnet;
                                                 if ( trace && ok2tx ) LogInfo("Network Locked = %d",selnet);
                                                 ok2tx=false;
-			//		 if ( GWMode != 1 ) {
-			//			GWMode = 1;
-//						SetDMR();
-					//	Reload();
-			//			LogInfo(" Loaded GWMode 1 Parameters");
-			//		}
                                 }
 				// 7 Digit Mode
 				if ( GWMode == 7 && dstId > 999999){
@@ -996,10 +985,10 @@ int CDMRGateway::run()
 						
 					}				
 
-                               	if ( dstId >= 9000 && dstId <= 9009 ) ok2tx = false;
+                               	if ( dstId >= 9000 && dstId <= 9006 ) ok2tx = false;
 
 
-				if ( GWMode == 0 ) {
+				if ( GWMode == 0 && selnet !=7 ) {
                                         	if (m_dmrNetwork1 ) net1ok = true;
                                         	if (m_dmrNetwork2 ) net2ok = true;
                                         	if (m_dmrNetwork3 ) net3ok = true;
@@ -1009,7 +998,8 @@ int CDMRGateway::run()
 						ok2tx = true;
 					}
 
-                           	
+                           	if ( dstId < 10 ) selnet=7;
+
 				switch( selnet ) {
                                                 case 0 :{ 
                                                         
@@ -1058,15 +1048,17 @@ int CDMRGateway::run()
                                                                 net6ok=true;
                                                                 break;
                                                         }
-                                   //             case 7 : if ( m_dmrNetwork3 != NULL )
-                                   //                     {
-                                   //                              rf3ok=true;
-                                   //                             net3ok=true;
-                                   //     			locknet=3;  
-				   //                           break;
-                                   //                     }
+                                                case 7 : if ( m_dmrNetwork3 != NULL )
+                                                        {
+		                                                ClearNetworks();
+                		                                ClearRFNets();
+								   ok2tx=false;
+				   	                           break;
+                                                        }
 
                                         	}
+ if ( selnet != 7 ) {
+
 	if ( trace ) LogInfo("RF transmission: Net=%u, Slot=%u Src=%u Dst=%s%u", selnet, slotNo, srcId, flco == FLCO_GROUP ? "TG" : "", dstId);
         if ( trace ) LogInfo("RF1OK:%s    RF2OK:%s   RF3OK:%s   RF4OK:%s   RF5OK:%s   RF6OK:%s", rf1ok ? "yes" : "no ", rf2ok ? "yes" : "no ", rf3ok ? "yes" : "no ", rf4ok ? "yes" : "no ", rf5ok ? "yes" : "no ", rf6ok ? "yes" : "no" );        
 	if ( trace ) LogInfo("NET1OK:%s   NET2OK:%s  NET3OK:%s  NET4OK:%s  NET5OK:%s  NET6OK:%s", net1ok ? "yes" : "no ", net2ok ? "yes" : "no ", net3ok ? "yes" : "no ",  net4ok ? "yes" : "no ", net5ok ? "yes" : "no ", net6ok ? "yes" : "no " );
@@ -1074,8 +1066,10 @@ int CDMRGateway::run()
 	if ( trace ) LogInfo("RFRX Net %d Dest: %d From: %d  TS:%d", selnet, dstId, srcId, slotNo);
 	if ( trace ) LogInfo("Gateway Mode = %d", GWMode);
 	if ( trace && RawNet == selnet ) LogInfo("Raw Net Selected = Net%d ", selnet);
+} else {
+	if ( trace ) LogInfo("XLX Mode Selected  Selnet-%d", dstId );
 
-
+}
 				if (m_network1Enabled && (m_dmrNetwork1 != NULL) && rf1ok && ok2tx) {
 					// Rewrite the slot and/or TG or neither
 					for (std::vector<CRewrite*>::iterator it = m_dmr1RFRewrites.begin(); it != m_dmr1RFRewrites.end(); ++it) {
@@ -1364,7 +1358,7 @@ int CDMRGateway::run()
 			}
 		}
 
-		if (m_networkXlxEnabled && (m_xlxNetwork != NULL)) {
+		if (m_networkXlxEnabled && (m_xlxNetwork != NULL) && selnet == 7) {
 			ret = m_xlxNetwork->read(data);
 			if (ret) {
 				if (m_status[m_xlxSlot] == DMRGWS_NONE || m_status[m_xlxSlot] == DMRGWS_XLXREFLECTOR) {
@@ -1391,7 +1385,7 @@ int CDMRGateway::run()
 				unsigned int srcId  = data.getSrcId();
 				unsigned int dstId  = data.getDstId();
 				FLCO flco           = data.getFLCO();
-rdstId=0;
+				rdstId=0;
 				bool trace = false;
 //				if (ruleTrace && (srcId != dmr1SrcId[slotNo] || dstId != dmr1DstId[slotNo])) {
 				if (srcId != dmr1SrcId[slotNo] || dstId != dmr1DstId[slotNo]) {
@@ -1413,7 +1407,7 @@ rdstId=0;
 					}
 				}
 
-				if (rewritten && net1ok) {
+				if (rewritten && net1ok && (selnet !=7)) {
 					// Check that the rewritten slot is free to use.
 					slotNo = data.getSlotNo();
 					if (m_status[slotNo] == DMRGWS_NONE || m_status[slotNo] == DMRGWS_DMRNETWORK1) {
@@ -1467,7 +1461,7 @@ rdstId=0;
 					}
 				}
 
-				if (rewritten && net2ok) {
+				if (rewritten && net2ok && (selnet !=7)) {
 					// Check that the rewritten slot is free to use.
 					slotNo = data.getSlotNo();
 					if (m_status[slotNo] == DMRGWS_NONE || m_status[slotNo] == DMRGWS_DMRNETWORK2) {
@@ -1490,7 +1484,7 @@ rdstId=0;
 				m_repeater->writeBeacon();
 		}
 
-		if (m_network3Enabled && (m_dmrNetwork3 != NULL)) {
+		if (m_network3Enabled && (m_dmrNetwork3 != NULL)){
 			ret = m_dmrNetwork3->read(data);
 			if (ret && net3ok) {
 				unsigned int slotNo = data.getSlotNo();
@@ -1514,13 +1508,13 @@ rdstId=0;
 				bool rewritten = false;
 				for (std::vector<CRewrite*>::iterator it = m_dmr3NetRewrites.begin(); it != m_dmr3NetRewrites.end(); ++it) {
 					bool ret = (*it)->process(data, trace);
-					if (ret) {
+					if (ret && net3ok && (selnet !=7)) {
 						rewritten = true;
 						break;
 					}
 				}
 
-				if (rewritten && net3ok) {
+				if (rewritten && net3ok && (selnet !=7)) {
 					// Check that the rewritten slot is free to use.
 					slotNo = data.getSlotNo();
 					if (m_status[slotNo] == DMRGWS_NONE || m_status[slotNo] == DMRGWS_DMRNETWORK3) {
@@ -1549,7 +1543,7 @@ rdstId=0;
 				unsigned int srcId = data.getSrcId();
 				unsigned int dstId = data.getDstId();
 				FLCO flco = data.getFLCO();
-rdstId=0;
+				rdstId=0;
 
 				bool trace = false;
 
@@ -1574,7 +1568,7 @@ rdstId=0;
 					}
 				}
 
-				if (rewritten && net4ok) {
+				if (rewritten && net4ok && (selnet !=7)) {
 					// Check that the rewritten slot is free to use.
 					slotNo = data.getSlotNo();
 					if (m_status[slotNo] == DMRGWS_NONE || m_status[slotNo] == DMRGWS_DMRNETWORK4) {
@@ -1598,7 +1592,7 @@ rdstId=0;
 
 		if (m_network5Enabled && (m_dmrNetwork5 != NULL)) {
 			ret = m_dmrNetwork5->read(data);
-			if (ret && net5ok) {
+			if (ret && net5ok && (selnet !=7)) {
 				unsigned int slotNo = data.getSlotNo();
 				unsigned int srcId = data.getSrcId();
 				unsigned int dstId = data.getDstId();
@@ -1626,7 +1620,7 @@ rdstId=0;
 					}
 				}
 
-				if (rewritten && net5ok) {
+				if (rewritten && net5ok && (selnet !=7)) {
 					// Check that the rewritten slot is free to use.
 					slotNo = data.getSlotNo();
 					if (m_status[slotNo] == DMRGWS_NONE || m_status[slotNo] == DMRGWS_DMRNETWORK5) {
@@ -1679,7 +1673,7 @@ rdstId=0;
 					}
 				}
 
-				if (rewritten && net6ok) {
+				if (rewritten && net6ok && (selnet !=7)) {
 					// Check that the rewritten slot is free to use.
 					slotNo = data.getSlotNo();
 					if (m_status[slotNo] == DMRGWS_NONE || m_status[slotNo] == DMRGWS_DMRNETWORK6) {
