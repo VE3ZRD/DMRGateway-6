@@ -736,7 +736,6 @@ int CDMRGateway::run()
 					LogMessage("XLX, Linking to reflector XLX%03u %c", m_xlxNumber, c);
 					if (m_xlxVoice != NULL)
 						m_xlxVoice->linkedTo(m_xlxNumber, m_xlxReflector);
-					selnet=7;
 				} else if (m_xlxRoom >= 4001U && m_xlxRoom <= 4026U) {
 					writeXLXLink(m_xlxId, m_xlxRoom, m_xlxNetwork);
 					char c = ('A' + (m_xlxRoom % 100U)) - 1U;
@@ -744,7 +743,6 @@ int CDMRGateway::run()
 					if (m_xlxVoice != NULL)
 						m_xlxVoice->linkedTo(m_xlxNumber, m_xlxRoom);
 					m_xlxReflector = m_xlxRoom;
-					selnet=7;
 				} else {
 					if (m_xlxVoice != NULL)
 						m_xlxVoice->linkedTo(m_xlxNumber, 0U);
@@ -773,7 +771,6 @@ int CDMRGateway::run()
 						char c = ('A' + (m_xlxRoom % 100U)) - 1U;
 						LogMessage("XLX, Re-linking to startup reflector XLX%03u %c due to RF inactivity timeout", m_xlxNumber, c);
 						linkXLX(m_xlxStartup);
-						selnet=7;
 					} else {
 						LogMessage("XLX, Unlinking from XLX%03u due to RF inactivity timeout", m_xlxNumber);
 						unlinkXLX();
@@ -786,7 +783,6 @@ int CDMRGateway::run()
 						writeXLXLink(m_xlxId, m_xlxRoom, m_xlxNetwork);
 						char c = ('A' + (m_xlxRoom % 100U)) - 1U;
 						LogMessage("XLX, Re-linking to startup reflector XLX%03u %c due to RF inactivity timeout", m_xlxNumber, c);
-						selnet=7;
 					} else if (m_xlxReflector >= 4001U && m_xlxReflector <= 4026U) {
 						char c = ('A' + (m_xlxReflector % 100U)) - 1U;
 						LogMessage("XLX, Unlinking from reflector XLX%03u %c due to RF inactivity timeout", m_xlxNumber, c);
@@ -799,7 +795,6 @@ int CDMRGateway::run()
 						else
 							m_xlxVoice->linkedTo(m_xlxNumber, m_xlxReflector);
 					}
-					selnet=7;
 				}	
 			}
 		}
@@ -818,9 +813,9 @@ int CDMRGateway::run()
 					m_xlxRelink.start();
 
 				m_xlxRewrite->process(data, false);
-				if (m_networkXlxEnabled) {
+				if (m_networkXlxEnabled && selnet == 7 ) {
 					m_xlxNetwork->write(data);
-					selnet=7;
+		
 				}
 				m_status[slotNo] = DMRGWS_XLXREFLECTOR;
 				timer[slotNo]->setTimeout(rfTimeout);
@@ -842,7 +837,6 @@ int CDMRGateway::run()
 						m_xlxReflector = dstId;
 						char c = ('A' + (dstId % 100U)) - 1U;
 						LogMessage("XLX, Linking to reflector XLX%03u %c", m_xlxNumber, c);
-						selnet=7;
 					}
 
 					if (m_xlxReflector != m_xlxRoom)
@@ -861,7 +855,6 @@ int CDMRGateway::run()
 						if (m_xlxConnected) {
 							if (m_xlxReflector != 4000U) {
 								m_xlxVoice->linkedTo(m_xlxNumber, m_xlxReflector);
-								selnet=7;
 							}else{
 								m_xlxVoice->linkedTo(m_xlxNumber, 0U);
 								selnet=7;
@@ -891,7 +884,9 @@ int CDMRGateway::run()
 					trace = true;
 					LogDebug("Rule Trace, RF transmission: Slot=%u Src=%u Dst=%s%u", slotNo, srcId, flco == FLCO_GROUP ? "TG" : "", dstId);
 					LogInfo("Rule Trace, RF transmission: Slot=%u Src=%u Dst=%s%u", slotNo, srcId, flco == FLCO_GROUP ? "TG" : "", dstId);
-					selnet=7;
+					if (m_xlxVoice != NULL)
+						m_xlxVoice->linkedTo(srcId, slotNo);
+
 				}
 
 
@@ -907,10 +902,6 @@ int CDMRGateway::run()
 					GWMode=0;
                                 }
 
-                                if ( dstId == 9007) {
-					selnet=7;
-                                        ok2tx=false;
-				}
 				if ( dstId >= 9001 && dstId <= 9006){
                                                 ClearNetworks();
                                                 ClearRFNets();
@@ -922,6 +913,8 @@ int CDMRGateway::run()
                                                 if ( trace && ok2tx ) LogInfo("Network Locked = %d",selnet);
                                                 ok2tx=false;
                                 }
+
+
 				// 7 Digit Mode
 				if ( GWMode == 7 && dstId > 999999){
                             
@@ -985,7 +978,7 @@ int CDMRGateway::run()
 						
 					}				
 
-                               	if ( dstId >= 9000 && dstId <= 9006 ) ok2tx = false;
+                               	if ( dstId >= 9000 && dstId <= 9009 ) ok2tx = false;
 
 
 				if ( GWMode == 0 && selnet !=7 ) {
@@ -998,7 +991,13 @@ int CDMRGateway::run()
 						ok2tx = true;
 					}
 
-                           	if ( dstId < 10 ) selnet=7;
+                           	if ( dstId == 9007 && m_networkXlxEnabled ) 
+					{ selnet=7;}
+						 if (trace) LogInfo("XLX Selection Accepted!");
+				else
+					{
+						 if (trace) LogInfo("XLX Selection Ignored as XLX Not Enabled!");
+					}
 
 				switch( selnet ) {
                                                 case 0 :{ 
@@ -1048,13 +1047,16 @@ int CDMRGateway::run()
                                                                 net6ok=true;
                                                                 break;
                                                         }
-                                                case 7 : if ( m_dmrNetwork3 != NULL )
-                                                        {
-		                                                ClearNetworks();
-                		                                ClearRFNets();
-								   ok2tx=false;
+                                                case 7 :  
+                                        			if (m_dmrNetwork1 ) rf1ok = false;
+                                        			if (m_dmrNetwork2 ) rf2ok = false;
+                                        			if (m_dmrNetwork3 ) rf3ok = false;
+                                        			if (m_dmrNetwork4 ) rf4ok = false;
+                                        			if (m_dmrNetwork5 ) rf5ok = false;
+                                        			if (m_dmrNetwork6 ) rf6ok = false;
+								   ok2tx=true;
 				   	                           break;
-                                                        }
+                                                        
 
                                         	}
  if ( selnet != 7 ) {
@@ -1067,7 +1069,7 @@ int CDMRGateway::run()
 	if ( trace ) LogInfo("Gateway Mode = %d", GWMode);
 	if ( trace && RawNet == selnet ) LogInfo("Raw Net Selected = Net%d ", selnet);
 } else {
-	if ( trace ) LogInfo("XLX Mode Selected  Selnet-%d", dstId );
+	if ( trace ) LogInfo("XLX Mode Selected  Selnet = %d", selnet );
 
 }
 				if (m_network1Enabled && (m_dmrNetwork1 != NULL) && rf1ok && ok2tx) {
