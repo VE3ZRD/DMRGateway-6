@@ -357,8 +357,7 @@ void SetUserRoot()
 				LogInfo("Could not set root GID");
 			}
 
-			if (setuid(root_uid) != 0) {
-				::fprintf(stderr, "Could not set root UID\n");
+			if (setuid(root_uid) != 0) {				::fprintf(stderr, "Could not set root UID\n");
 				LogInfo("Could not set root UID\n");
 			}
 
@@ -857,7 +856,6 @@ int CDMRGateway::run()
 								m_xlxVoice->linkedTo(m_xlxNumber, m_xlxReflector);
 							}else{
 								m_xlxVoice->linkedTo(m_xlxNumber, 0U);
-								selnet=7;
 							}
 						} else {
 							m_xlxVoice->unlinked();
@@ -948,14 +946,6 @@ int CDMRGateway::run()
                                         	ok2tx=true;
                                                 if ( trace ) LogInfo("Network Locked = %d",selnet);
 			
-				//		if ( GWMode != 8 ) 
-				//		{
-				//			GWMode = 8;
-				//			Reload();
-				//			LogInfo(" Loaded GWMode 8 Parameters");
-//
-//							SetDMR();
-//						}
 
 						if (RawNet >= 1 && RawNet == selnet && dstId < 99999999)
 						{
@@ -966,7 +956,7 @@ int CDMRGateway::run()
 				}
 
 //				if (RawNet >= 1 && RawNet == selnet && dstId < 99999999)
-				if ( dstId <= 999999 && RawNet >=1 && RawNet <= 6 )
+				if ( dstId <= 999999 && RawNet >=1 && RawNet <= 6  && selnet != 7)
 					{
                                                 ClearNetworks();
                                                 ClearRFNets();
@@ -991,13 +981,16 @@ int CDMRGateway::run()
 						ok2tx = true;
 					}
 
-                           	if ( dstId == 9007 && m_networkXlxEnabled ) 
-					{ selnet=7;}
+                           	if ( dstId == 9007 ) {
+					if ( m_networkXlxEnabled ) {
+						{ selnet=7;}
 						 if (trace) LogInfo("XLX Selection Accepted!");
-				else
+					}
+					else
 					{
 						 if (trace) LogInfo("XLX Selection Ignored as XLX Not Enabled!");
 					}
+				}
 
 				switch( selnet ) {
                                                 case 0 :{ 
