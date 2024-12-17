@@ -381,13 +381,14 @@ echo "Running CopyBin"
 
 if [ ! -f /home/pi-star/DMRGateway-6/DMRGateway ]; then
 	sudo mount -o remount,rw /
+	echo "Stopping DMRGateway and MMDVMHost"
+	sudo /home/pi-star/DMRGateway-6/binupdate.sh
+else
+	sudo mount -o remount,rw /
 	make clean
 	echo "Compiling DMRGateway Files"
 	make
 fi
-	sudo mount -o remount,rw /
-	echo "Stopping DMRGateway and MMDVMHost"
-	sudo /home/pi-star/DMRGateway-6/binupdate.sh
 }
 
 function SelRaw()
