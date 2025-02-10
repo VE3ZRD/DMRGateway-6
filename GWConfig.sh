@@ -19,7 +19,7 @@ fi
 HS="$1"
 RN="0"
 
-ver="20230807"
+ver="20250201"
 export NCURSES_NO_UTF8_ACS=1
 
 if [ -f ~/.dialog ]; then
@@ -30,6 +30,8 @@ fi
 #use_colors = ON
 #screen_color = (WHITE,BLUE,ON)
 #title_color = (YELLOW,RED,ON)
+sudo mount -o remount,rw /
+
 sed -i '/use_colors = /c\use_colors = ON' ~/.dialogrc
 sed -i '/screen_color = /c\screen_color = (WHITE,BLUE,ON)' ~/.dialogrc
 sed -i '/title_color = /c\title_color = (YELLOW,RED,ON)' ~/.dialogrc
@@ -82,7 +84,9 @@ read -n 1 -s -r -p "Press any key to Continue"
 
 function TurnOnGW()
 {
- sudo sed -i '/^\[/h;G;/DMR Network/s/\(Address=\).*/\1'"127.0.0.1"'/m;P;d' /etc/mmdvmhost
+
+ sudo mount -o remount,rw /
+sudo sed -i '/^\[/h;G;/DMR Network/s/\(Address=\).*/\1'"127.0.0.1"'/m;P;d' /etc/mmdvmhost
 }
 
 function GetSetInfo()
@@ -111,6 +115,7 @@ sudo mount -o remount,rw /
  sudo sed -i '/^\[/h;G;/Info/s/\(Description=\).*/\1'"$DES"'/m;P;d' /etc/dmrgateway
 
  sudo sed -i '/^\[/h;G;/DMR Network/s/\(Type=\).*/\1'"Gateway"'/m;P;d' /etc/mmdvmhost
+sudo mount -o remount,rw /
 
 SN=$(sed -nr "/^\[General\]/ { :l /^StartNet[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" /etc/dmrgateway)
 if [ ! "$SN" ]; then 
@@ -134,6 +139,7 @@ sed -i 's/CallSign/'"$CALL"'/g' /etc/dmrgateway
 function SetNetworks()
 {
 echo "Running SetNetworks"
+sudo mount -o remount,rw /
 
 TurnOnGW
 
@@ -194,6 +200,8 @@ Id1="$ID""$HS""5"
  PWD=$(sed -nr "/^\[DMR Network 5\]/ { :l /^PWD[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $pwf)
  ENAB=$(sed -nr "/^\[DMR Network 5\]/ { :l /^Enabled[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" $pwf)
  if [ "$ENAB" != "0" ]; then  ENAB=1; fi
+sudo mount -o remount,rw /
+
  sudo sed -i '/^\[/h;G;/DMR Network 5/s/\(URL=\).*/\1'"$Id"'/m;P;d' /etc/dmrgateway
  sudo sed -i '/^\[/h;G;/DMR Network 5/s/\(Password=\).*/\1'"$PWD"'/m;P;d' /etc/dmrgateway
  sudo sed -i '/^\[/h;G;/DMR Network 5/s/\(SrcRewrite=\).*/\1'"$SRCRW"'/m;P;d' /etc/dmrgateway
@@ -256,6 +264,8 @@ sed -i '/TGRewrite1/s/^/#/g' /etc/dmrgateway    ###    (to comment out)
 }
 
 function RawNet(){
+sudo mount -o remount,rw /
+
  sudo sed -i '/^\[/h;G;/General/s/\(RawNet=\).*/\1'"$RN"'/m;P;d' /etc/dmrgateway
 
  if [ ! "$RN" == "0" ]; then
@@ -346,48 +356,28 @@ RawNet
 
 }
 
-#function Parrot8()
-#{
-# Net1
-# sudo sed -i '/^\[/h;G;/DMR Network 1/s/\(PCRewrite0=\).*/\1'"2,11000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-# Net2
-# sudo sed -i '/^\[/h;G;/DMR Network 1/s/\(PCRewrite0=\).*/\1'"2,12000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-# Net4
-# sudo sed -i '/^\[/h;G;/DMR Network 4/s/\(PCRewrite0=\).*/\1'"2,14000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-# Net5
-# sudo sed -i '/^\[/h;G;/DMR Network 5/s/\(PCRewrite0=\).*/\1'"2,15000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-# Net 6
-# sudo sed -i '/^\[/h;G;/DMR Network 6/s/\(PCRewrite0=\).*/\1'"2,16000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-#}
-
-#function Parrot7()
-#{
-# Net1
-# sudo sed -i '/^\[/h;G;/DMR Network 1/s/\(PCRewrite0=\).*/\1'"2,1000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-# Net2
-# sudo sed -i '/^\[/h;G;/DMR Network 1/s/\(PCRewrite0=\).*/\1'"2,2000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-# Net4
-# sudo sed -i '/^\[/h;G;/DMR Network 4/s/\(PCRewrite0=\).*/\1'"2,4000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-# Net5
-# sudo sed -i '/^\[/h;G;/DMR Network 5/s/\(PCRewrite0=\).*/\1'"2,5000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-# Net 6
-# sudo sed -i '/^\[/h;G;/DMR Network 6/s/\(PCRewrite0=\).*/\1'"2,6000001,2,1,9999999"'/m;P;d' /etc/dmrgateway
-#}
-
 
 function CopyBin()
 {
 echo "Running CopyBin"
+sudo mount -o remount,rw /
 
-if [ ! -f /home/pi-star/DMRGateway-6/DMRGateway ]; then
+if [ -f /home/pi-star/DMRGateway-6/DMRGateway ]; then
 	sudo mount -o remount,rw /
 	echo "Stopping DMRGateway and MMDVMHost"
+	make install
 	sudo /home/pi-star/DMRGateway-6/binupdate.sh
 else
 	sudo mount -o remount,rw /
-	make clean
 	echo "Compiling DMRGateway Files"
+
+	if [ ! -f /usr/local/bin/DMRGateway.orig ]; then
+   		sudo cp /usr/local/bin/DMRGateway /usr/local/bin/DMRGateway.orig
+	fi
+
+ 	make clean
 	make
+	make install
 fi
 }
 
@@ -475,7 +465,7 @@ CHOICE=$(dialog --clear \
 
 clear
 echo -e '\e[1;44m'
-
+sudo mount -o remount,rw /
 
 case $CHOICE in
         1)
@@ -488,29 +478,26 @@ case $CHOICE in
             ;;
          2)   echo "You Chose to Install DMRGateway - Basic Mode"
 		sudo cp /home/pi-star/DMRGateway-6/DMRGateway.ini /etc/dmrgateway
+		CopyBin.sh
 		GetSetInfo
 		SetNetworks
 		GWMode1
-		CopyBin
             ;;
 	  3) SelRaw
 	    ;;
          4)   echo "You Chose to Install DMRGateway - 8 Digit Translation Mode"
 		sudo cp /home/pi-star/DMRGateway-6/DMRGateway.ini /etc/dmrgateway
+		CopyBin
 		GetSetInfo
 		SetNetworks
 		GWMode8
-		#RawNet
-		CopyBin
             ;;
          5)   echo "You Chose to Install DMRGateway - 7 Digit Translation Mode"
 		sudo cp /home/pi-star/DMRGateway-6/DMRGateway.ini /etc/dmrgateway
+		CopyBin
 		GetSetInfo
 		SetNetworks
 		GWMode7
-		#RawNet
-#		Parrot7
-		CopyBin
             ;;
          6)
             echo "You Chose to Install DMRGateway - No Config File Update"		
