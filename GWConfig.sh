@@ -7,6 +7,8 @@
 ############################################################
 set -o errexit
 set -o pipefail
+
+sudo systemctl daemon-reload
 sudo mount -o remount,rw /
 
 
